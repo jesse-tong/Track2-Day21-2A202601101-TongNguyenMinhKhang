@@ -1,8 +1,6 @@
-# Sieu tham so cho mo hinh LightGBM (LGBMClassifier)
-n_estimators: 350
-learning_rate: 0.04
-num_leaves: 63
-max_depth: 10
-min_child_samples: 15
-subsample: 0.8
-colsample_bytree: 0.8
+# Sieu tham so cho mo hinh RandomForestClassifier
+# Thay doi cac gia tri nay giua cac lan chay de thi nghiem (Buoc 1)
+n_estimators: 300
+max_depth: 20
+min_samples_split: 3
+max_features: 0.38

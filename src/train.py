@@ -4,8 +4,8 @@ import yaml
 import joblib
 import pandas as pd
 import mlflow
-import mlflow.lightgbm
-from lightgbm import LGBMClassifier
+import mlflow.sklearn
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, f1_score, recall_score
 
 EVAL_THRESHOLD = 0.70
@@ -17,10 +17,10 @@ def train(
     eval_path: str = "data/eval.csv",
 ) -> float:
     """
-    Huan luyen mo hinh LightGBM va ghi nhan ket qua vao MLflow.
+    Huan luyen mo hinh RandomForestClassifier va ghi nhan ket qua vao MLflow.
 
     Tham so:
-        params     : dict chua cac sieu tham so cho LGBMClassifier.
+        params     : dict chua cac sieu tham so cho RandomForestClassifier.
         data_path  : duong dan den file du lieu huan luyen.
         eval_path  : duong dan den file du lieu danh gia.
 
@@ -31,10 +31,6 @@ def train(
     # TODO 1: Doc du lieu huan luyen va danh gia
     df_train = pd.read_csv(data_path)
     df_eval = pd.read_csv(eval_path)
-
-    # Chuan hoa ten cot (thay khoang trang bang dau gach duoi)
-    df_train.columns = [c.replace(" ", "_") for c in df_train.columns]
-    df_eval.columns = [c.replace(" ", "_") for c in df_eval.columns]
 
     # TODO 2: Tach dac trung (X) va nhan (y)
     X_train = df_train.drop(columns=["target"])
@@ -47,8 +43,8 @@ def train(
         # TODO 3: Ghi nhan cac sieu tham so
         mlflow.log_params(params)
 
-        # TODO 4: Khoi tao va huan luyen LGBMClassifier
-        model = LGBMClassifier(**params, random_state=42, verbose=-1)
+        # TODO 4: Khoi tao va huan luyen RandomForestClassifier
+        model = RandomForestClassifier(**params, random_state=42)
         model.fit(X_train, y_train)
 
         # TODO 5: Du doan tren tap danh gia va tinh chi so
@@ -62,7 +58,7 @@ def train(
         mlflow.log_metric("f1_score", f1)
         mlflow.log_metric("recall", recall)
         try:
-            mlflow.lightgbm.log_model(model, "model")
+            mlflow.sklearn.log_model(model, "model")
         except Exception:
             pass
 
@@ -86,4 +82,5 @@ if __name__ == "__main__":
     with open("params.yaml") as f:
         params = yaml.safe_load(f)
     train(params)
+
 
