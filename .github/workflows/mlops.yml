@@ -77,11 +77,10 @@ jobs:
             --bucket "$CLOUD_BUCKET" \
             --prefix dvc/ \
             --max-items 5
-            
+
       - name: Configure DVC remote
         run: |
           dvc remote modify myremote url "s3://${CLOUD_BUCKET}/dvc"
-          dvc remote get-url myremote
 
       - name: Pull data with DVC
         # TODO 3: Pull cac file du lieu can thiet tu cloud storage bang lenh dvc pull.
