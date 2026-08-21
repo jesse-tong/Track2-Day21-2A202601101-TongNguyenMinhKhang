@@ -25,14 +25,14 @@ jobs:
 
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.10"
+          python-version: "3.11"
 
       - name: Install dependencies
         run: pip install -r requirements.txt
 
       - name: Run unit tests
         # TODO 1: Viet lenh de chay pytest tren thu muc tests/ voi co -v
-        run: # <dien lenh o day>
+        run: pytest -v tests/
 
 
   # ---------------------------------------------------------------------------
@@ -65,12 +65,14 @@ jobs:
         #        echo "AWS_SECRET_ACCESS_KEY=..." >> $GITHUB_ENV
         # Azure: echo "AZURE_STORAGE_CONNECTION_STRING=..." >> $GITHUB_ENV
         run: |
-          # <dien code o day>
+          echo "AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}" >> $GITHUB_ENV
+          echo "AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}" >> $GITHUB_ENV
+          echo "CLOUD_BUCKET=${{ secrets.CLOUD_BUCKET }}" >> $GITHUB_ENV
 
       - name: Pull data with DVC
         # TODO 3: Pull cac file du lieu can thiet tu cloud storage bang lenh dvc pull.
         #         Chi pull train_phase1.csv va eval.csv (khong can train_phase2.csv).
-        run: # <dien lenh o day>
+        run: dvc pull data/train_phase1.csv data/eval.csv
 
       - name: Train model
         run: python src/train.py
@@ -84,7 +86,8 @@ jobs:
         #   ACC=$(python -c "import json; d=json.load(open('outputs/metrics.json')); print(d['accuracy'])")
         #   echo "accuracy=$ACC" >> $GITHUB_OUTPUT
         run: |
-          # <dien code o day>
+          ACC=$(python -c "import json; d=json.load(open('outputs/metrics.json')); print(d['accuracy'])")
+          echo "accuracy=$ACC" >> $GITHUB_OUTPUT
 
       - name: Upload model to Cloud Storage
         # TODO 5: Su dung cloud SDK de upload models/model.pkl len
@@ -92,7 +95,12 @@ jobs:
         #         Ten bucket lay tu secret CLOUD_BUCKET.
         run: |
           python - <<'EOF'
-          # <dien code Python o day>
+          import boto3
+          import os
+          bucket_name = os.environ["CLOUD_BUCKET"]
+          s3 = boto3.client("s3")
+          s3.upload_file("models/model.pkl", bucket_name, "models/latest/model.pkl")
+
           EOF
 
       - name: Save metrics as artifact
@@ -126,7 +134,10 @@ jobs:
         #   print("PASSED: dang trien khai model.")
         run: |
           python - <<'EOF'
-          # <dien code Python o day>
+          acc = float("${{ needs.train.outputs.accuracy }}")
+          if acc < 0.70:
+              raise SystemExit(f"FAILED: accuracy {acc:.4f} < 0.70. Huy deploy.")
+          print("PASSED: dang trien khai model.")
           EOF
 
 
@@ -157,3 +168,6 @@ jobs:
             #   sleep 5
             #   curl -sf http://localhost:8000/health && echo "Health check passed." || exit 1
             # <dien lenh bash o day>
+            sudo systemctl restart mlops-serve
+            sleep 5
+            curl -sf http://localhost:8000/health && echo "Health check passed." || exit 1 
