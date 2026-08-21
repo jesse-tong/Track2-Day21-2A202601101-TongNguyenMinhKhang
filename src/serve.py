@@ -57,6 +57,7 @@ def health():
 
     Tra ve: {"status": "ok"}
     """
+    return {"status": "ok"}
 
 
 @app.post("/predict")
