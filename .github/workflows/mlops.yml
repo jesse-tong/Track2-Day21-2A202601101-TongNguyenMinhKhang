@@ -68,7 +68,16 @@ jobs:
           echo "AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}" >> $GITHUB_ENV
           echo "AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}" >> $GITHUB_ENV
           echo "CLOUD_BUCKET=${{ secrets.CLOUD_BUCKET }}" >> $GITHUB_ENV
-          
+      
+      - name: Check AWS access
+        run: |
+          aws sts get-caller-identity
+          aws s3api head-bucket --bucket "$CLOUD_BUCKET"
+          aws s3api list-objects-v2 \
+            --bucket "$CLOUD_BUCKET" \
+            --prefix dvc/ \
+            --max-items 5
+            
       - name: Configure DVC remote
         run: |
           dvc remote modify myremote url "s3://${CLOUD_BUCKET}/dvc"
