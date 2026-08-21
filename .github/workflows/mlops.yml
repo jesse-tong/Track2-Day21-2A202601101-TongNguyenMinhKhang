@@ -173,5 +173,5 @@ jobs:
             #   curl -sf http://localhost:8000/health && echo "Health check passed." || exit 1
             # <dien lenh bash o day>
             sudo systemctl restart mlops-serve
-            sleep 5
+            sleep 15
             curl -sf http://localhost:8000/health && echo "Health check passed." || exit 1 
